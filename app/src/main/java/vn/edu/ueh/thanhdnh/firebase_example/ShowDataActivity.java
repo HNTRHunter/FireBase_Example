@@ -52,17 +52,19 @@ public class ShowDataActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         
-        db.collection("articles").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        db.collection("articles").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot snapshots, @Nullable FirebaseFirestoreException error) {
-                if (snapshots != null) {
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
                     articles.clear();
-                    for (QueryDocumentSnapshot q : snapshots) {
+                    for (QueryDocumentSnapshot q : task.getResult()) {
                         Article article = q.toObject(Article.class);
                         article.setId(q.getId());
                         articles.add(article);
                     }
                     adapter.update(articles);
+                } else {
+                    Log.e("Firestore", "Error getting documents: ", task.getException());
                 }
             }
         });
